@@ -512,11 +512,13 @@ def cmd_history(args):
         if meta.get("TransactionResult") != "tesSUCCESS":
             continue
 
-        amt = tx.get("Amount") or tx.get("DeliverMax", "0")
-        if isinstance(amt, dict):
+        amt = tx.get("Amount") or tx.get("DeliverMax")
+        if not amt or isinstance(amt, dict):
             continue
 
         amount_xrp = float(drops_to_xrp(str(amt)))
+        if amount_xrp < 0.001:
+            continue
         src        = tx.get("Account", "")
         dest       = tx.get("Destination", "")
         tag        = tx.get("DestinationTag", "")
