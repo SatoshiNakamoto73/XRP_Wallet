@@ -1,6 +1,6 @@
-# xrp — Sovereign XRP Terminal Wallet
+# xrp — Sovereign XRP Terminal Wallet + Point of Sale
 
-No phone app. No exchange account. No cloud. Your keys live encrypted on your machine. The tool talks directly to the XRP Ledger over WebSocket.
+No phone app. No exchange account. No cloud. Your keys live encrypted on your machine. The tool talks directly to the XRP Ledger over WebSocket — sub-second payment confirmation, $0.0002 per transaction.
 
 ---
 
@@ -29,9 +29,35 @@ xrp send rXXX...XXX 1.5 --tag 4821       # Send with destination tag
 xrp history                               # Recent transactions
 xrp watch                                 # Watch for incoming payments
 xrp watch --amount 1.5 --on-payment "./unlock.sh"   # Trigger script on payment
+xrp pos                                   # Launch browser-based point of sale
 xrp export                                # Show seed phrase (careful)
 xrp node https://xrplcluster.com          # Set custom XRPL node
 ```
+
+---
+
+## Point of Sale
+
+`xrp pos` launches a browser-based POS terminal on your local machine. Open it on any screen — tablet on the counter, laptop, or any device on your local network.
+
+```bash
+xrp pos              # http://localhost:7743
+xrp pos --port 8080  # custom port
+```
+
+**Cashier flow:**
+1. Enter the amount using the on-screen keypad
+2. Hit **Charge** — generates a unique order QR code
+3. Customer scans with any XRP wallet
+4. Screen flips to ✓ **PAID** automatically in ~3 seconds
+5. Hit **New Sale** for the next customer
+
+Each sale gets a unique destination tag as an order ID. All confirmed payments are logged locally. No card reader, no Stripe, no chargebacks.
+
+**Why this matters:**
+- Card processing costs ~2.9% + $0.30 per transaction
+- XRP settles in 3–5 seconds at $0.0002 flat
+- A business doing $10K/month saves ~$300/month in fees
 
 ---
 
@@ -92,9 +118,9 @@ WantedBy=multi-user.target
 
 ## Security
 
-- Private key is encrypted with AES-256-GCM + PBKDF2 (600k iterations)
-- Key is derived from your password — never stored in plaintext
-- `xrp receive`, `xrp watch`, `xrp balance`, `xrp history` never ask for your password — they only need your public address
+- Private key encrypted with AES-256-GCM + PBKDF2 (600k iterations)
+- Key derived from your password — never stored in plaintext
+- `xrp receive`, `xrp watch`, `xrp balance`, `xrp history`, `xrp pos` never ask for your password — read-only, public address only
 - Only `xrp send` and `xrp export` decrypt the key
 
 ---
@@ -103,16 +129,17 @@ WantedBy=multi-user.target
 
 ```
 ~/.config/xrp/
-├── wallet.enc      # AES-256-GCM encrypted seed
-├── config.json     # node URL, public address
-└── history.db      # SQLite local tx log
+├── wallet.enc        # AES-256-GCM encrypted seed
+├── config.json       # node URL, public address
+├── pos_orders.json   # POS order state (survives restarts)
+└── history.db        # SQLite local transaction log
 ```
 
 ---
 
 ## XRPL Node
 
-Defaults to `https://xrplcluster.com` (community-run, reliable). You can point it at any public or self-hosted rippled node:
+Defaults to `https://xrplcluster.com` (community-run, reliable). Point it at any public or self-hosted `rippled` node:
 
 ```bash
 xrp node https://s1.ripple.com
